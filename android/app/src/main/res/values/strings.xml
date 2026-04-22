@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Know Thy Poop</string>
+    <string name="title_activity_main">Know Thy Poop</string>
+    <string name="package_name">com.pooptracker.site</string>
+    <string name="custom_url_scheme">com.pooptracker.site</string>
+</resources>

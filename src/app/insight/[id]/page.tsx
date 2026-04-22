@@ -280,10 +280,18 @@ export default async function InsightPage({ params }: Props) {
       </div>
 
       {/* Bottom CTA */}
-      <div className="fixed bottom-0 left-0 right-0 p-5 bg-gradient-to-t from-stone-50 via-stone-50 to-transparent">
-        <Link href="/log">
+      <div className="fixed bottom-0 left-0 right-0 p-5 bg-gradient-to-t from-stone-50 via-stone-50 to-transparent flex gap-3">
+        <Link href="/home" className="flex-1">
+          <Button
+            variant="outline"
+            className="w-full h-14 rounded-2xl text-base font-semibold border-stone-200 bg-white text-stone-700 active:scale-95 transition-transform"
+          >
+            Go home
+          </Button>
+        </Link>
+        <Link href="/log" className="flex-1">
           <Button className="w-full h-14 rounded-2xl text-base font-semibold bg-amber-600 hover:bg-amber-700 text-white shadow-lg shadow-amber-200 active:scale-95 transition-transform">
-            Track another poop 💩
+            Track another 💩
           </Button>
         </Link>
       </div>

@@ -30,7 +30,7 @@ export default function WelcomePage() {
       <div className="text-center max-w-sm">
         <div className="mb-6 text-6xl">💩</div>
         <h1 className="text-4xl font-bold tracking-tight text-stone-800 mb-6">
-          Logio
+          Know Thy Poop
         </h1>
         <p
           className="text-stone-500 text-lg leading-relaxed min-h-[3.5rem] transition-opacity duration-400"

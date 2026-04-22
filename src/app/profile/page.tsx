@@ -17,7 +17,18 @@ export default async function ProfilePage() {
   return (
     <ProfileClient
       email={user.email ?? ""}
-      profile={profile ?? { id: user.id, name: null, age: null, phone: null, created_at: "" }}
+      profile={
+        profile ?? {
+          id: user.id,
+          name: null,
+          age: null,
+          phone: null,
+          reminder_time: null,
+          avatar_seed: null,
+          country_code: null,
+          created_at: "",
+        }
+      }
       issues={issues ?? []}
     />
   );

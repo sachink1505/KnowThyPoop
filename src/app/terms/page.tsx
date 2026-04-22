@@ -16,11 +16,11 @@ export default function TermsPage() {
 
         <div className="space-y-8 text-stone-600 text-sm leading-7">
           <section>
-            <h2 className="text-base font-semibold text-stone-800 mb-2">1. What Logio is (and isn't)</h2>
+            <h2 className="text-base font-semibold text-stone-800 mb-2">1. What Know Thy Poop is (and isn't)</h2>
             <p>
-              Logio is a personal health logging app that helps you track your bowel habits and
+              Know Thy Poop is a personal health logging app that helps you track your bowel habits and
               understand patterns over time. The insights and analysis you receive are generated
-              for informational and educational purposes only. Logio is <strong>not a medical
+              for informational and educational purposes only. Know Thy Poop is <strong>not a medical
               device</strong>, and nothing in this app constitutes medical advice, diagnosis, or
               treatment. Always consult a qualified healthcare professional if you have concerns
               about your health. Do not delay seeking medical attention based on anything you read
@@ -59,10 +59,10 @@ export default function TermsPage() {
           <section>
             <h2 className="text-base font-semibold text-stone-800 mb-2">4. Your responsibilities</h2>
             <p>
-              You agree to use Logio only for its intended purpose — personal health tracking.
+              You agree to use Know Thy Poop only for its intended purpose — personal health tracking.
               You must not attempt to reverse-engineer, exploit, or misuse the app or its
               infrastructure. You are responsible for keeping your login credentials secure.
-              Because Logio uses a one-time code sent to your email, make sure your email
+              Because Know Thy Poop uses a one-time code sent to your email, make sure your email
               account is secure.
             </p>
             <p className="mt-3">
@@ -75,7 +75,7 @@ export default function TermsPage() {
             <h2 className="text-base font-semibold text-stone-800 mb-2">5. Changes to these terms</h2>
             <p>
               We may update these terms from time to time. If we make significant changes, we'll
-              notify you via the app or by email. Continued use of Logio after changes are posted
+              notify you via the app or by email. Continued use of Know Thy Poop after changes are posted
               means you accept the updated terms.
             </p>
           </section>
@@ -83,7 +83,7 @@ export default function TermsPage() {
           <section>
             <h2 className="text-base font-semibold text-stone-800 mb-2">6. Limitation of liability</h2>
             <p>
-              Logio is provided "as is". We are not liable for any health decisions made based on
+              Know Thy Poop is provided "as is". We are not liable for any health decisions made based on
               information in the app, for any data loss, or for interruptions in service. To the
               extent permitted by law, our liability is limited to the amount you paid to use the
               app (which, if it's free, is zero).

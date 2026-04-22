@@ -7,20 +7,24 @@ import {
   ChevronLeft,
   Pencil,
   Share2,
-  Download,
   Trash2,
   LogOut,
   Check,
   X,
+  Bell,
 } from "lucide-react";
+import PhoneInput, { isValidPhoneNumber } from "react-phone-number-input";
+import "react-phone-number-input/style.css";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { createClient } from "@/lib/supabase/client";
+import { AvatarPicker, AVATAR_SEEDS, avatarUrl } from "@/components/AvatarPicker";
+import { scheduleDailyReminder } from "@/lib/notifications";
 import type { Profile, UserIssue } from "@/types/database";
 
-const APP_VERSION = "0.1.0";
+const APP_VERSION = "0.3.0";
 
 const ISSUE_OPTIONS = [
   { id: "multiple_times", label: "Poop multiple times a day" },
@@ -33,16 +37,6 @@ const ISSUE_OPTIONS = [
 function issueLabel(id: string, custom: string | null) {
   if (id === "other" && custom) return custom;
   return ISSUE_OPTIONS.find((o) => o.id === id)?.label ?? id;
-}
-
-function formatPhone(raw: string) {
-  return raw.replace(/[^\d+]/g, "").slice(0, 16);
-}
-
-function isValidPhone(raw: string) {
-  if (!raw) return true;
-  const digits = raw.replace(/\D/g, "");
-  return digits.length >= 7 && digits.length <= 15;
 }
 
 type Props = {
@@ -58,10 +52,18 @@ export function ProfileClient({ email, profile, issues }: Props) {
   const [editingBasics, setEditingBasics] = useState(false);
   const [editingIssues, setEditingIssues] = useState(false);
   const [editingPhone, setEditingPhone] = useState(false);
+  const [editingReminder, setEditingReminder] = useState(false);
+  const [editingAvatar, setEditingAvatar] = useState(false);
 
   const [name, setName] = useState(profile.name ?? "");
   const [age, setAge] = useState(profile.age?.toString() ?? "");
-  const [phone, setPhone] = useState(profile.phone ?? "");
+  const [phone, setPhone] = useState<string | undefined>(profile.phone ?? undefined);
+  const [reminderTime, setReminderTime] = useState(
+    profile.reminder_time ? profile.reminder_time.slice(0, 5) : ""
+  );
+  const [avatarSeed, setAvatarSeed] = useState<string>(
+    profile.avatar_seed ?? AVATAR_SEEDS[0]
+  );
 
   const [selectedIssues, setSelectedIssues] = useState<string[]>(
     issues.map((i) => i.issue_type)
@@ -73,6 +75,12 @@ export function ProfileClient({ email, profile, issues }: Props) {
   const [savedName, setSavedName] = useState(profile.name ?? "");
   const [savedAge, setSavedAge] = useState(profile.age);
   const [savedPhone, setSavedPhone] = useState(profile.phone ?? "");
+  const [savedReminder, setSavedReminder] = useState(
+    profile.reminder_time ? profile.reminder_time.slice(0, 5) : ""
+  );
+  const [savedAvatar, setSavedAvatar] = useState<string>(
+    profile.avatar_seed ?? AVATAR_SEEDS[0]
+  );
   const [savedIssues, setSavedIssues] = useState<UserIssue[]>(issues);
 
   const [busy, setBusy] = useState<string | null>(null);
@@ -107,24 +115,58 @@ export function ProfileClient({ email, profile, issues }: Props) {
   }
 
   async function savePhone() {
-    const cleaned = phone.trim();
-    if (cleaned && !isValidPhone(cleaned)) {
+    const value = phone ?? "";
+    if (value && !isValidPhoneNumber(value)) {
       flash("Enter a valid phone number");
       return;
     }
     setBusy("phone");
     const { error } = await supabase
       .from("profiles")
-      .update({ phone: cleaned || null })
+      .update({ phone: value || null })
       .eq("id", profile.id);
     setBusy(null);
     if (error) {
       flash(error.message);
       return;
     }
-    setSavedPhone(cleaned);
+    setSavedPhone(value);
     setEditingPhone(false);
     flash("Saved");
+  }
+
+  async function saveReminder() {
+    setBusy("reminder");
+    const value = reminderTime ? `${reminderTime}:00` : null;
+    const { error } = await supabase
+      .from("profiles")
+      .update({ reminder_time: value })
+      .eq("id", profile.id);
+    setBusy(null);
+    if (error) {
+      flash(error.message);
+      return;
+    }
+    await scheduleDailyReminder(reminderTime || null);
+    setSavedReminder(reminderTime);
+    setEditingReminder(false);
+    flash(reminderTime ? "Reminder set" : "Reminder off");
+  }
+
+  async function saveAvatar() {
+    setBusy("avatar");
+    const { error } = await supabase
+      .from("profiles")
+      .update({ avatar_seed: avatarSeed })
+      .eq("id", profile.id);
+    setBusy(null);
+    if (error) {
+      flash(error.message);
+      return;
+    }
+    setSavedAvatar(avatarSeed);
+    setEditingAvatar(false);
+    flash("Avatar updated");
   }
 
   async function saveIssues() {
@@ -174,10 +216,10 @@ export function ProfileClient({ email, profile, issues }: Props) {
 
   async function handleShare() {
     const url =
-      typeof window !== "undefined" ? window.location.origin : "https://logio.app";
+      typeof window !== "undefined" ? window.location.origin : "https://pooptracker.site";
     const shareData = {
-      title: "Logio — gut health tracker",
-      text: "I'm tracking my gut health with Logio. Join me!",
+      title: "Know Thy Poop — gut health tracker",
+      text: "I'm tracking my gut with Know Thy Poop. Join me!",
       url,
     };
     if (typeof navigator !== "undefined" && "share" in navigator) {
@@ -185,36 +227,15 @@ export function ProfileClient({ email, profile, issues }: Props) {
         await navigator.share(shareData);
         return;
       } catch {
-        // user cancelled or share failed — fall through to copy
+        // user cancelled — fall through
       }
     }
     try {
       await navigator.clipboard.writeText(url);
-      flash("Link copied to clipboard");
+      flash("Link copied");
     } catch {
-      flash("Could not share — copy this: " + url);
+      flash("Could not share — copy: " + url);
     }
-  }
-
-  async function handleExport() {
-    setBusy("export");
-    try {
-      const res = await fetch("/api/export");
-      if (!res.ok) throw new Error("Export failed");
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `logio-export-${new Date().toISOString().slice(0, 10)}.json`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
-      flash("Export downloaded");
-    } catch (e) {
-      flash(e instanceof Error ? e.message : "Export failed");
-    }
-    setBusy(null);
   }
 
   async function handleDelete() {
@@ -251,10 +272,53 @@ export function ProfileClient({ email, profile, issues }: Props) {
       </header>
 
       <div className="px-5 space-y-4">
-        {/* Email */}
+        {/* Avatar + email */}
         <div className="bg-white rounded-2xl p-5 shadow-sm border border-stone-100">
-          <p className="text-xs text-stone-400 mb-0.5">Signed in as</p>
-          <p className="text-sm font-medium text-stone-700 break-all">{email}</p>
+          <div className="flex items-center gap-4">
+            <button
+              type="button"
+              onClick={() => setEditingAvatar((v) => !v)}
+              className="shrink-0 w-16 h-16 rounded-full bg-amber-50 border-2 border-amber-200 overflow-hidden active:scale-95 transition"
+              aria-label="Change avatar"
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={avatarUrl(savedAvatar)}
+                alt="Avatar"
+                className="w-full h-full"
+              />
+            </button>
+            <div className="min-w-0 flex-1">
+              <p className="text-xs text-stone-400 mb-0.5">Signed in as</p>
+              <p className="text-sm font-medium text-stone-700 break-all">{email}</p>
+            </div>
+          </div>
+
+          {editingAvatar && (
+            <div className="mt-4 pt-4 border-t border-stone-100 space-y-3">
+              <AvatarPicker value={avatarSeed} onChange={setAvatarSeed} />
+              <div className="flex gap-2">
+                <Button
+                  onClick={saveAvatar}
+                  disabled={busy === "avatar"}
+                  className="flex-1 h-10 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-sm"
+                >
+                  <Check className="w-4 h-4 mr-1" />
+                  {busy === "avatar" ? "Saving…" : "Save"}
+                </Button>
+                <Button
+                  onClick={() => {
+                    setAvatarSeed(savedAvatar);
+                    setEditingAvatar(false);
+                  }}
+                  variant="outline"
+                  className="h-10 rounded-xl border-stone-200 text-stone-600"
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Basics: name + age */}
@@ -326,6 +390,69 @@ export function ProfileClient({ email, profile, issues }: Props) {
                     setName(savedName);
                     setAge(savedAge?.toString() ?? "");
                     setEditingBasics(false);
+                  }}
+                  variant="outline"
+                  className="h-10 rounded-xl border-stone-200 text-stone-600"
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Reminder */}
+        <div className="bg-white rounded-2xl p-5 shadow-sm border border-stone-100">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <Bell className="w-4 h-4 text-amber-600" />
+              <h2 className="text-sm font-semibold text-stone-700">Daily reminder</h2>
+            </div>
+            {!editingReminder && (
+              <button
+                onClick={() => setEditingReminder(true)}
+                className="text-stone-400 hover:text-amber-700 active:scale-95 transition"
+                aria-label="Edit reminder"
+              >
+                <Pencil className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+
+          {!editingReminder ? (
+            <p className="text-sm font-medium text-stone-700">
+              {savedReminder || <span className="text-stone-400 italic">Off</span>}
+            </p>
+          ) : (
+            <div className="space-y-3">
+              <input
+                type="time"
+                value={reminderTime}
+                onChange={(e) => setReminderTime(e.target.value)}
+                className="w-full h-11 rounded-xl border border-stone-200 bg-stone-50 px-4 text-stone-800 focus:outline-none focus:ring-2 focus:ring-amber-500"
+              />
+              {reminderTime && (
+                <button
+                  type="button"
+                  onClick={() => setReminderTime("")}
+                  className="text-xs text-stone-500 underline"
+                >
+                  Turn off
+                </button>
+              )}
+              <div className="flex gap-2">
+                <Button
+                  onClick={saveReminder}
+                  disabled={busy === "reminder"}
+                  className="flex-1 h-10 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-sm"
+                >
+                  <Check className="w-4 h-4 mr-1" />
+                  {busy === "reminder" ? "Saving…" : "Save"}
+                </Button>
+                <Button
+                  onClick={() => {
+                    setReminderTime(savedReminder);
+                    setEditingReminder(false);
                   }}
                   variant="outline"
                   className="h-10 rounded-xl border-stone-200 text-stone-600"
@@ -452,16 +579,17 @@ export function ProfileClient({ email, profile, issues }: Props) {
             </p>
           ) : (
             <div className="space-y-3">
-              <Input
-                type="tel"
-                inputMode="tel"
-                placeholder="+1 555 123 4567"
-                value={phone}
-                onChange={(e) => setPhone(formatPhone(e.target.value))}
-                className="h-11 rounded-xl border-stone-200 bg-stone-50 focus-visible:ring-amber-500"
-              />
+              <div className="ktp-phone-input">
+                <PhoneInput
+                  international
+                  defaultCountry="IN"
+                  value={phone}
+                  onChange={setPhone}
+                  placeholder="Phone number"
+                />
+              </div>
               <p className="text-xs text-stone-400">
-                Used for account recovery only. 7–15 digits.
+                Pick country, enter digits only.
               </p>
               <div className="flex gap-2">
                 <Button
@@ -474,7 +602,7 @@ export function ProfileClient({ email, profile, issues }: Props) {
                 </Button>
                 <Button
                   onClick={() => {
-                    setPhone(savedPhone);
+                    setPhone(savedPhone || undefined);
                     setEditingPhone(false);
                   }}
                   variant="outline"
@@ -495,17 +623,7 @@ export function ProfileClient({ email, profile, issues }: Props) {
           >
             <Share2 className="w-5 h-5 text-stone-500" />
             <span className="text-sm font-medium text-stone-700">
-              Share app with friends
-            </span>
-          </button>
-          <button
-            onClick={handleExport}
-            disabled={busy === "export"}
-            className="w-full flex items-center gap-3 px-5 py-4 hover:bg-stone-50 active:bg-stone-100 transition disabled:opacity-50"
-          >
-            <Download className="w-5 h-5 text-stone-500" />
-            <span className="text-sm font-medium text-stone-700">
-              {busy === "export" ? "Preparing export…" : "Export my data"}
+              Share with friends
             </span>
           </button>
           <button
@@ -533,7 +651,7 @@ export function ProfileClient({ email, profile, issues }: Props) {
 
         {/* Footer */}
         <div className="pt-3 text-center space-y-2">
-          <p className="text-xs text-stone-400">Logio v{APP_VERSION}</p>
+          <p className="text-xs text-stone-400">Know Thy Poop v{APP_VERSION}</p>
           <div className="flex items-center justify-center gap-3 text-xs">
             <Link href="/terms" className="text-stone-500 hover:text-amber-700 underline">
               Terms
@@ -567,8 +685,8 @@ export function ProfileClient({ email, profile, issues }: Props) {
               Delete your account?
             </h3>
             <p className="text-sm text-stone-500 leading-relaxed mb-4">
-              This permanently deletes your profile, all entries, analyses, and
-              uploaded images. This cannot be undone.
+              Permanently deletes your profile, entries, analyses, and images.
+              Can&apos;t be undone.
             </p>
             <Label className="text-xs text-stone-500 mb-1.5 block">
               Type <span className="font-mono font-semibold">DELETE</span> to confirm

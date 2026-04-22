@@ -132,22 +132,22 @@ export default function AuthPage() {
     <main className="flex min-h-screen flex-col items-center justify-center bg-stone-50 px-6">
       <div className="w-full max-w-sm">
         {/* Header */}
-        <div className="text-center mb-10">
+        <div className="text-center mb-12">
           <div className="text-4xl mb-3">💩</div>
           <h1 className="text-2xl font-bold text-stone-800">
-            {step === "email" ? "Welcome to Logio" : "Check your inbox"}
+            {step === "email" ? "Know Thy Poop" : "Check your inbox"}
           </h1>
-          <p className="text-stone-500 mt-2 text-sm leading-relaxed">
+          <p className="text-stone-500 mt-3 text-sm leading-relaxed">
             {step === "email"
-              ? "Enter your email and we'll send you a one-time code."
+              ? "Enter your email. We'll send a code."
               : `We sent a 6-digit code to ${email}`}
           </p>
         </div>
 
         {/* Email step */}
         {step === "email" && (
-          <form onSubmit={handleSubmit(sendOtp)} className="space-y-4">
-            <div className="space-y-1.5">
+          <form onSubmit={handleSubmit(sendOtp)} className="space-y-6">
+            <div className="space-y-3">
               <Label htmlFor="email" className="text-stone-700">Email address</Label>
               <Input
                 id="email"

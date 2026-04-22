@@ -15,6 +15,9 @@ export interface Database {
           name: string | null;
           age: number | null;
           phone: string | null;
+          reminder_time: string | null;
+          avatar_seed: string | null;
+          country_code: string | null;
           created_at: string;
         };
         Insert: {
@@ -22,6 +25,9 @@ export interface Database {
           name?: string | null;
           age?: number | null;
           phone?: string | null;
+          reminder_time?: string | null;
+          avatar_seed?: string | null;
+          country_code?: string | null;
           created_at?: string;
         };
         Update: {
@@ -29,6 +35,9 @@ export interface Database {
           name?: string | null;
           age?: number | null;
           phone?: string | null;
+          reminder_time?: string | null;
+          avatar_seed?: string | null;
+          country_code?: string | null;
           created_at?: string;
         };
         Relationships: [];

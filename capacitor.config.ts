@@ -7,11 +7,11 @@ import type { CapacitorConfig } from "@capacitor/cli";
 //
 // If PROD_URL is not yet provisioned, Capacitor will still scaffold; just
 // remember to sync again once the domain is live.
-const PROD_URL = "https://pooptracker.site";
+const PROD_URL = "https://app.pooptracker.site";
 
 const config: CapacitorConfig = {
   appId: "com.pooptracker.site",
-  appName: "Logio",
+  appName: "Know Thy Poop",
   webDir: "out", // only used if/when we later switch to static export
   server: {
     url: PROD_URL,
@@ -19,7 +19,7 @@ const config: CapacitorConfig = {
     cleartext: false,
     // Restrict which hosts the WebView will navigate to; prevents hijack to
     // a phishing URL if a link is ever opened in-app.
-    allowNavigation: ["pooptracker.site", "*.pooptracker.site"],
+    allowNavigation: ["app.pooptracker.site", "*.pooptracker.site"],
   },
   ios: {
     // Prevent the WebView from zooming on input focus; matches web behavior.
@@ -42,6 +42,10 @@ const config: CapacitorConfig = {
     StatusBar: {
       style: "LIGHT", // light content on our amber-tinted bars
       backgroundColor: "#fafaf9",
+    },
+    LocalNotifications: {
+      smallIcon: "ic_stat_icon_config_sample",
+      iconColor: "#d97706",
     },
   },
 };

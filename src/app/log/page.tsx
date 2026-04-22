@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
-import { ChevronLeft, AlertCircle } from "lucide-react";
+import { ChevronLeft, AlertCircle, ChevronDown } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -25,7 +25,7 @@ function PillGroup<T extends string>({
   onChange,
 }: {
   options: T[];
-  value: T;
+  value: T | null;
   onChange: (v: T) => void;
 }) {
   return (
@@ -54,10 +54,11 @@ export default function LogPage() {
   const router = useRouter();
 
   const [time, setTime] = useState(format(new Date(), "HH:mm"));
-  const [urgency, setUrgency] = useState<Urgency>("Medium");
-  const [straining, setStraining] = useState(false);
-  const [odour, setOdour] = useState<Odour>("Mild");
+  const [urgency, setUrgency] = useState<Urgency | null>(null);
+  const [straining, setStraining] = useState<boolean | null>(null);
+  const [odour, setOdour] = useState<Odour | null>(null);
   const [notes, setNotes] = useState("");
+  const [notesOpen, setNotesOpen] = useState(false);
   const [image, setImage] = useState<File | null>(null);
   const [stage, setStage] = useState<Stage>("idle");
   const [error, setError] = useState("");
@@ -92,7 +93,7 @@ export default function LogPage() {
       }
 
       if (!res.ok) {
-        setError(body.error || "Analysis failed. Your entry was saved.");
+        setError(body.error || "Analysis failed. Entry saved.");
         setStage("idle");
         router.push(`/insight/${entryId}`);
         return;
@@ -107,7 +108,7 @@ export default function LogPage() {
 
       router.push(`/insight/${entryId}`);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Analysis request failed.");
+      setError(e instanceof Error ? e.message : "Analysis failed.");
       setStage("idle");
       router.push(`/insight/${entryId}`);
     }
@@ -127,7 +128,6 @@ export default function LogPage() {
       return;
     }
 
-    // Client-side duplicate-image abuse check — same hash in last 24h
     let imageHash: string | null = null;
     if (image) {
       try {
@@ -161,9 +161,9 @@ export default function LogPage() {
       .insert({
         user_id: user.id,
         logged_at: loggedAt,
-        urgency: URGENCY_VALUES[urgency],
-        straining: straining ? 5 : 1,
-        odour: ODOUR_VALUES[odour],
+        urgency: urgency ? URGENCY_VALUES[urgency] : null,
+        straining: straining === null ? null : straining ? 5 : 1,
+        odour: odour ? ODOUR_VALUES[odour] : null,
         notes: notes.trim() || null,
         image_hash: imageHash,
         score: null,
@@ -282,9 +282,19 @@ export default function LogPage() {
           />
         </div>
 
+        {/* Photo — moved above Notes */}
+        <div className="space-y-2">
+          <Label className="text-stone-700 font-medium">
+            Photo <span className="text-stone-400 font-normal">(optional)</span>
+          </Label>
+          <ImageUpload value={image} onChange={setImage} />
+        </div>
+
         {/* Urgency */}
         <div className="space-y-2">
-          <Label className="text-stone-700 font-medium">Urgency</Label>
+          <Label className="text-stone-700 font-medium">
+            Urgency <span className="text-stone-400 font-normal">(optional)</span>
+          </Label>
           <PillGroup
             options={["Low", "Medium", "High"] as Urgency[]}
             value={urgency}
@@ -294,7 +304,9 @@ export default function LogPage() {
 
         {/* Straining */}
         <div className="space-y-2">
-          <Label className="text-stone-700 font-medium">Straining</Label>
+          <Label className="text-stone-700 font-medium">
+            Straining <span className="text-stone-400 font-normal">(optional)</span>
+          </Label>
           <div className="flex gap-2">
             {([false, true] as const).map((opt) => (
               <button
@@ -315,7 +327,9 @@ export default function LogPage() {
 
         {/* Odour */}
         <div className="space-y-2">
-          <Label className="text-stone-700 font-medium">Odour</Label>
+          <Label className="text-stone-700 font-medium">
+            Odour <span className="text-stone-400 font-normal">(optional)</span>
+          </Label>
           <PillGroup
             options={["Mild", "Strong"] as Odour[]}
             value={odour}
@@ -323,27 +337,32 @@ export default function LogPage() {
           />
         </div>
 
-        {/* Notes */}
+        {/* Notes — collapsible */}
         <div className="space-y-2">
-          <Label className="text-stone-700 font-medium">
-            Notes{" "}
-            <span className="text-stone-400 font-normal">(optional)</span>
-          </Label>
-          <Textarea
-            placeholder="Anything unusual? Diet changes? Stress lately?"
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            rows={3}
-            className="rounded-xl border-stone-200 bg-white text-stone-800 placeholder:text-stone-400 focus-visible:ring-amber-500 resize-none"
-          />
-        </div>
-
-        {/* Image upload */}
-        <div className="space-y-2">
-          <Label className="text-stone-700 font-medium">
-            Photo <span className="text-stone-400 font-normal">(optional)</span>
-          </Label>
-          <ImageUpload value={image} onChange={setImage} />
+          {!notesOpen ? (
+            <button
+              type="button"
+              onClick={() => setNotesOpen(true)}
+              className="w-full h-12 rounded-xl border border-dashed border-stone-300 bg-white text-sm text-stone-500 hover:border-amber-400 hover:text-amber-700 active:scale-[0.99] transition flex items-center justify-center gap-2"
+            >
+              <ChevronDown className="w-4 h-4" />
+              Add notes (optional)
+            </button>
+          ) : (
+            <>
+              <Label className="text-stone-700 font-medium">
+                Notes <span className="text-stone-400 font-normal">(optional)</span>
+              </Label>
+              <Textarea
+                placeholder="Anything to note?"
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                rows={3}
+                autoFocus
+                className="rounded-xl border-stone-200 bg-white text-stone-800 placeholder:text-stone-400 focus-visible:ring-amber-500 resize-none"
+              />
+            </>
+          )}
         </div>
 
         {/* Pass 1 rejection */}

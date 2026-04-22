@@ -8,16 +8,8 @@ import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
 import { createClient } from "@/lib/supabase/client";
-
-const ISSUES = [
-  { id: "multiple_times", label: "Poop multiple times a day" },
-  { id: "constipation", label: "Irregular poop – constipation" },
-  { id: "piles", label: "Piles" },
-  { id: "other", label: "Other" },
-  { id: "none", label: "No issues" },
-];
+import { scheduleDailyReminder } from "@/lib/notifications";
 
 const schema = z.object({
   name: z.string().min(1, "Name is required").max(80),
@@ -32,8 +24,8 @@ export default function OnboardingPage() {
   const router = useRouter();
   const supabase = createClient();
 
-  const [selectedIssues, setSelectedIssues] = useState<string[]>([]);
-  const [customIssue, setCustomIssue] = useState("");
+  const [reminderTime, setReminderTime] = useState("09:00");
+  const [reminderEnabled, setReminderEnabled] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -43,16 +35,6 @@ export default function OnboardingPage() {
     formState: { errors },
   } = useForm<FormData>({ resolver: zodResolver(schema) });
 
-  function toggleIssue(id: string) {
-    setSelectedIssues((prev) => {
-      if (id === "none") return prev.includes("none") ? [] : ["none"];
-      const withoutNone = prev.filter((i) => i !== "none");
-      return withoutNone.includes(id)
-        ? withoutNone.filter((i) => i !== id)
-        : [...withoutNone, id];
-    });
-  }
-
   async function onSubmit({ name, age }: FormData) {
     setIsLoading(true);
     setError("");
@@ -60,9 +42,16 @@ export default function OnboardingPage() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { router.push("/"); return; }
 
+    const reminderValue =
+      reminderEnabled && reminderTime ? `${reminderTime}:00` : null;
+
     const { error: profileErr } = await supabase
       .from("profiles")
-      .update({ name, age: Number(age) })
+      .update({
+        name,
+        age: Number(age),
+        reminder_time: reminderValue,
+      })
       .eq("id", user.id);
 
     if (profileErr) {
@@ -71,34 +60,18 @@ export default function OnboardingPage() {
       return;
     }
 
-    if (selectedIssues.length > 0) {
-      const issueRows = selectedIssues.map((id) => ({
-        user_id: user.id,
-        issue_type: id,
-        custom_issue: id === "other" ? customIssue || null : null,
-      }));
-      const { error: issueErr } = await supabase
-        .from("user_issues")
-        .insert(issueRows);
-      if (issueErr) {
-        setError(issueErr.message);
-        setIsLoading(false);
-        return;
-      }
-    }
+    await scheduleDailyReminder(reminderEnabled ? reminderTime : null);
 
     router.push("/home");
   }
-
-  const showOther = selectedIssues.includes("other");
 
   return (
     <main className="flex min-h-screen flex-col bg-stone-50 px-6 pt-16 pb-10">
       <div className="w-full max-w-sm mx-auto flex flex-col gap-8">
         <div>
-          <h1 className="text-2xl font-bold text-stone-800">Let's get to know you</h1>
+          <h1 className="text-2xl font-bold text-stone-800">Quick setup</h1>
           <p className="text-stone-500 text-sm mt-1">
-            This helps us personalise your insights.
+            Takes 20 seconds.
           </p>
         </div>
 
@@ -134,36 +107,41 @@ export default function OnboardingPage() {
             )}
           </div>
 
-          {/* Issues */}
+          {/* Reminder */}
           <div className="space-y-3">
-            <Label className="text-stone-700">Any issues with your poop?</Label>
-            <div className="space-y-2">
-              {ISSUES.map(({ id, label }) => (
-                <label
-                  key={id}
-                  className="flex items-center gap-3 p-3.5 rounded-xl border border-stone-200 bg-white cursor-pointer hover:border-amber-300 hover:bg-amber-50 transition-colors"
-                  style={{
-                    borderColor: selectedIssues.includes(id) ? "rgb(217 119 6)" : undefined,
-                    backgroundColor: selectedIssues.includes(id) ? "rgb(255 251 235)" : undefined,
-                  }}
-                >
-                  <Checkbox
-                    checked={selectedIssues.includes(id)}
-                    onCheckedChange={() => toggleIssue(id)}
-                    className="border-stone-300 data-[state=checked]:bg-amber-600 data-[state=checked]:border-amber-600"
-                  />
-                  <span className="text-sm text-stone-700">{label}</span>
-                </label>
-              ))}
+            <div className="flex items-center justify-between">
+              <Label className="text-stone-700">Daily reminder</Label>
+              <button
+                type="button"
+                onClick={() => setReminderEnabled((v) => !v)}
+                className={`relative w-11 h-6 rounded-full transition-colors ${
+                  reminderEnabled ? "bg-amber-600" : "bg-stone-300"
+                }`}
+                aria-label="Toggle reminder"
+              >
+                <span
+                  className={`absolute top-0.5 w-5 h-5 rounded-full bg-white transition-transform ${
+                    reminderEnabled ? "translate-x-5" : "translate-x-0.5"
+                  }`}
+                />
+              </button>
             </div>
-
-            {showOther && (
-              <Input
-                placeholder="Describe your issue…"
-                value={customIssue}
-                onChange={(e) => setCustomIssue(e.target.value)}
-                className="h-11 rounded-xl border-stone-200 bg-white text-stone-800 placeholder:text-stone-400 focus-visible:ring-amber-500"
-              />
+            {reminderEnabled ? (
+              <>
+                <input
+                  type="time"
+                  value={reminderTime}
+                  onChange={(e) => setReminderTime(e.target.value)}
+                  className="w-full h-12 rounded-xl border border-stone-200 bg-white px-4 text-stone-800 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                />
+                <p className="text-xs text-stone-400">
+                  We&apos;ll nudge you every day at this time.
+                </p>
+              </>
+            ) : (
+              <p className="text-xs text-stone-400">
+                You can set a reminder later in Profile.
+              </p>
             )}
           </div>
 

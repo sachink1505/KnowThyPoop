@@ -21,8 +21,8 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "Logio",
-  description: "Gut health and poop tracking, made simple.",
+  title: "Know Thy Poop",
+  description: "Track your poop. Know your gut.",
 };
 
 export default function RootLayout({

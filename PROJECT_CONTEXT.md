@@ -155,7 +155,7 @@ The app ships to Play Store and App Store as a **Capacitor shell that loads the 
 
 - **App ID / bundle ID:** `com.pooptracker.site`
 - **App name:** `Logio`
-- **Production URL:** `https://pooptracker.site` (set as `server.url` in [capacitor.config.ts](capacitor.config.ts))
+- **Production URL:** `https://app.pooptracker.site` (set as `server.url` in [capacitor.config.ts](capacitor.config.ts))
 - **Path chosen (A over B/C):** Keep API on Vercel, point Capacitor at the remote URL. Avoids rewriting every route in [src/app/api/](src/app/api/) as Supabase Edge Functions. Tradeoff: requires network for every request; Apple may scrutinise the web-wrapper pattern — mitigated by native camera + haptics + native splash.
 
 ### Files

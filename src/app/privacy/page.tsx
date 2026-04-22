@@ -20,7 +20,7 @@ export default function PrivacyPage() {
         <div className="space-y-8 text-stone-600 text-sm leading-7">
           <section>
             <p>
-              This policy explains what information Logio collects, how we use it,
+              This policy explains what information Know Thy Poop collects, how we use it,
               and what rights you have over it. We've kept it short and plain on
               purpose — your data is yours.
             </p>
@@ -146,7 +146,7 @@ export default function PrivacyPage() {
               7. Children
             </h2>
             <p>
-              Logio is not intended for users under 13. If you believe a child has
+              Know Thy Poop is not intended for users under 13. If you believe a child has
               provided us data, contact us and we'll delete it.
             </p>
           </section>

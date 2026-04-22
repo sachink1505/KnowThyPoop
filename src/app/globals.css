@@ -92,3 +92,43 @@
     font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
   }
 }
+
+/* Phone input styling */
+.ktp-phone-input .PhoneInput {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 44px;
+  padding: 0 12px;
+  background: rgb(250 250 249);
+  border: 1px solid rgb(231 229 228);
+  border-radius: 12px;
+}
+.ktp-phone-input .PhoneInputCountry {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.ktp-phone-input .PhoneInputInput {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: rgb(41 37 36);
+  font-size: 14px;
+}
+.ktp-phone-input .PhoneInputCountrySelect {
+  color: rgb(41 37 36);
+}
+
+/* 404 wobble animation */
+@keyframes ktp-wobble {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  25% { transform: translateY(-8px) rotate(-6deg); }
+  50% { transform: translateY(0) rotate(0deg); }
+  75% { transform: translateY(-4px) rotate(6deg); }
+}
+.ktp-wobble {
+  animation: ktp-wobble 2.4s ease-in-out infinite;
+  transform-origin: center bottom;
+}

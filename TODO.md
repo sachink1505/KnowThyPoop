@@ -8,7 +8,7 @@ Things to configure by hand in external dashboards before shipping. Code-side ha
 
 Nothing else in this list can progress until these are done.
 
-- [ ] **Deploy Next.js app to Vercel at `https://pooptracker.site`** — point the custom domain, run a prod build, verify sign-in + log + analyse flow works end-to-end on mobile Safari and Chrome.
+- [ ] **Deploy Next.js app to Vercel at `https://app.pooptracker.site`** — point the custom domain, run a prod build, verify sign-in + log + analyse flow works end-to-end on mobile Safari and Chrome.
 - [ ] **Apple Developer Program** — confirm membership is paid and active ($99/year). Needed for certificates, App Store Connect record, and submission.
 - [ ] **Google Play Console** — confirm account is created and one-time $25 fee paid. Needed for app listing and AAB upload.
 
@@ -88,13 +88,13 @@ Dashboard → Authentication
 
 Done in code:
 - [x] Install Capacitor core + platforms + plugins (camera, haptics, splash, status-bar, app, browser, assets)
-- [x] `capacitor.config.ts` — bundle ID `com.pooptracker.site`, `server.url = https://pooptracker.site`, plugin config
+- [x] `capacitor.config.ts` — bundle ID `com.pooptracker.site`, `server.url = https://app.pooptracker.site`, plugin config
 - [x] Capacitor Camera wired into `ImageUpload` with web fallback (dynamic import so web bundle doesn't pull in native code)
 - [x] Placeholder on-brand SVG icon + splash art in [resources/](resources/)
 - [x] Path chosen: keep Next.js on Vercel, Capacitor loads remote URL (no Edge Function rewrite)
 
 Pending — native project creation & first build:
-- [ ] Deploy Next.js app to Vercel; confirm `https://pooptracker.site` loads in a mobile browser
+- [ ] Deploy Next.js app to Vercel; confirm `https://app.pooptracker.site` loads in a mobile browser
 - [ ] `npm run cap:assets` — generate icon/splash artefacts from [resources/](resources/)
 - [ ] `npm run cap:add:ios` and `npm run cap:add:android` — scaffold native projects
 - [ ] `npm run cap:sync`

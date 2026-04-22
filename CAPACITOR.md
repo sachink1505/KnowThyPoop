@@ -1,18 +1,18 @@
 # Capacitor — Native Build & Store Submission
 
-This project ships as a Next.js app on Vercel with a thin Capacitor shell wrapping it for iOS and Android. The native shell loads `https://pooptracker.site` inside a WebView; API routes and Supabase auth stay exactly as they are on the web.
+This project ships as a Next.js app on Vercel with a thin Capacitor shell wrapping it for iOS and Android. The native shell loads `https://app.pooptracker.site` inside a WebView; API routes and Supabase auth stay exactly as they are on the web.
 
 **App identity**
 - App name: `Logio`
 - Bundle ID / App ID: `com.pooptracker.site`
-- Production URL: `https://pooptracker.site` (set in `capacitor.config.ts`)
+- Production URL: `https://app.pooptracker.site` (set in `capacitor.config.ts`)
 
 ---
 
 ## 0. One-time setup (after install)
 
 ```bash
-# Deploy the Next.js app to Vercel and confirm https://pooptracker.site loads.
+# Deploy the Next.js app to Vercel and confirm https://app.pooptracker.site loads.
 # Then, from the project root:
 
 # Generate all icon + splash assets from resources/*.svg into native projects.
@@ -172,9 +172,9 @@ Set version + build number (target → **General**):
 | Subtitle (iOS) | 30 chars max. e.g. "Gut health, tracked simply." |
 | Short description (Play) | 80 chars max. e.g. "Track your gut health with private, AI-assisted poop logging." |
 | Long description | 4000 chars max (both stores) — template below |
-| Privacy Policy URL | `https://pooptracker.site/privacy` ([src/app/privacy/](src/app/privacy/)) |
-| Terms URL | `https://pooptracker.site/terms` ([src/app/terms/](src/app/terms/)) |
-| Support URL | `https://pooptracker.site/` or a support email |
+| Privacy Policy URL | `https://app.pooptracker.site/privacy` ([src/app/privacy/](src/app/privacy/)) |
+| Terms URL | `https://app.pooptracker.site/terms` ([src/app/terms/](src/app/terms/)) |
+| Support URL | `https://app.pooptracker.site/` or a support email |
 | Category | Health & Fitness (primary), Medical (secondary — optional) |
 | Content rating | 12+ (iOS) / Teen (Play) — see rating notes below |
 
