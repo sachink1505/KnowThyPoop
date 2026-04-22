@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Timer, Camera, Sparkles, UserCircle, Flame } from "lucide-react";
+import { Timer, Camera, Sparkles, UserCircle, Flame, BarChart3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EntryCard } from "@/components/EntryCard";
 
@@ -213,12 +213,32 @@ export default async function HomePage() {
               </div>
             )}
 
-            <Link
-              href="/insights"
-              className="block text-center text-sm font-medium text-amber-700 hover:text-amber-800 active:scale-95 transition-transform py-2"
-            >
-              View past insights →
-            </Link>
+            <div className="grid grid-cols-2 gap-3">
+              <Link
+                href="/stats"
+                className="bg-white rounded-2xl p-4 shadow-sm border border-stone-100 flex items-center gap-3 active:scale-95 transition-transform"
+              >
+                <div className="w-10 h-10 rounded-xl bg-amber-500 flex items-center justify-center shrink-0">
+                  <BarChart3 className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-stone-800">Stats</p>
+                  <p className="text-[11px] text-stone-400">Timing & trends</p>
+                </div>
+              </Link>
+              <Link
+                href="/insights"
+                className="bg-white rounded-2xl p-4 shadow-sm border border-stone-100 flex items-center gap-3 active:scale-95 transition-transform"
+              >
+                <div className="w-10 h-10 rounded-xl bg-stone-600 flex items-center justify-center shrink-0">
+                  <Sparkles className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-stone-800">Insights</p>
+                  <p className="text-[11px] text-stone-400">Past logs</p>
+                </div>
+              </Link>
+            </div>
           </div>
         )}
       </div>

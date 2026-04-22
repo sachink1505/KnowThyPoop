@@ -45,6 +45,7 @@ export async function scheduleDailyReminder(time: string | null): Promise<void> 
         id: REMINDER_ID,
         title: "Time to log your poop 💩",
         body: "Keep your streak going.",
+        extra: { route: "/log" },
         schedule: {
           on: { hour: parsed.hour, minute: parsed.minute },
           allowWhileIdle: true,
@@ -52,4 +53,24 @@ export async function scheduleDailyReminder(time: string | null): Promise<void> 
       },
     ],
   });
+}
+
+/**
+ * Register once on app boot. When the user taps a notification, navigate
+ * to the route carried in its `extra.route` payload.
+ */
+export async function registerNotificationTapHandler(
+  onNavigate: (route: string) => void,
+): Promise<void> {
+  if (!isNative()) return;
+  const { LocalNotifications } = await import("@capacitor/local-notifications");
+  await LocalNotifications.addListener(
+    "localNotificationActionPerformed",
+    (action) => {
+      const route = action.notification.extra?.route;
+      if (typeof route === "string" && route.startsWith("/")) {
+        onNavigate(route);
+      }
+    },
+  );
 }

@@ -21,10 +21,8 @@ function odourLabel(v: number | null) {
   return v <= 2 ? "Mild" : "Strong";
 }
 
-const PLACEHOLDER_SCORE = 75;
-
 export function EntryCard({ entry, large }: { entry: PoopEntry; large?: boolean }) {
-  const score = entry.score ?? PLACEHOLDER_SCORE;
+  const score = entry.score;
 
   return (
     <Link href={`/insight/${entry.id}`}>
@@ -70,10 +68,12 @@ export function EntryCard({ entry, large }: { entry: PoopEntry; large?: boolean 
               <span
                 className={`font-bold text-amber-700 ${large ? "text-lg" : "text-base"}`}
               >
-                {score}
+                {score ?? "—"}
               </span>
             </div>
-            <p className="text-[10px] text-stone-400 mt-1">score</p>
+            <p className="text-[10px] text-stone-400 mt-1">
+              {score == null ? "no score" : "score"}
+            </p>
           </div>
         </div>
       </div>

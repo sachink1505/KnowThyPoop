@@ -11,7 +11,7 @@ const csp = [
   // Next dev needs unsafe-eval for HMR; prod drops it.
   `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}`,
   "style-src 'self' 'unsafe-inline'",
-  `img-src 'self' data: blob: ${supabaseOrigin}`.trim(),
+  `img-src 'self' data: blob: ${supabaseOrigin} https://api.dicebear.com`.trim(),
   "font-src 'self' data:",
   `connect-src 'self' ${supabaseOrigin} ${supabaseWs}`.trim(),
   "frame-ancestors 'none'",

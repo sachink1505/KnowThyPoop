@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 // Side-effect: validates required env vars at startup and throws with a clear
 // message if any are missing or malformed.
 import "@/lib/env";
+import { NotificationHandler } from "@/components/NotificationHandler";
 
 const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
@@ -35,6 +36,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <NotificationHandler />
         {children}
       </body>
     </html>

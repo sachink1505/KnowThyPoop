@@ -2,6 +2,37 @@
 
 All notable changes to Know Thy Poop.
 
+## [0.4.0] — 2026-04-22
+
+Android versionCode `4` · versionName `0.4`
+
+### Added
+- **Unified score formula** — one Bristol-backed formula (composition 30 · colour 25 · straining 15 · urgency 10 · volume 10 · odour 10). Computed at save time from the characteristics you pick. A photo auto-fills those traits so the score stays consistent — same number on home, insight, everywhere.
+- **Picture-based pickers** for colour, volume, composition, urgency, straining, odour (emoji tiles + custom poop-composition SVGs for rock / pellets / smooth / mushy).
+- **Stopwatch** for poop duration, stored in new `duration_seconds` column.
+- **`/stats` page** — 24-hour timing histogram, average duration, average gap between consecutive poops.
+- **Stats tile on home** — quick link alongside Insights.
+- **Flush sound** on successful save (`/public/sounds/flush.mp3` — drop a CC0 asset there).
+- **Notification deep-link** — tapping the daily reminder opens `/log`.
+
+### Fixed
+- **Score 0 vs 75 inconsistency** — removed both `?? 75` placeholder (EntryCard) and `?? 0` fallback (insight). Score is now computed at save and shown consistently; entries with no traits show "—".
+- **Avatars broken** — CSP `img-src` now allows `https://api.dicebear.com`.
+- **Camera permissions** — we now explicitly `checkPermissions` + `requestPermissions` before `getPhoto`; denial shows a clear message instead of the generic "couldn't open camera".
+- **Non-poop images** — pass1 rejection threshold tightened (confidence ≥ 0.7), prompt rewritten to be strict + copy now reads "The uploaded picture is not of a poop. Try a different image."
+- **Logged out on app restart / notification tap** — Android `CookieManager` now accepts + flushes cookies in `MainActivity.onCreate` and `onPause`, so the Supabase session persists.
+- **Android launcher icon** — adaptive icon (v26+) now points to a custom brown-poop-on-amber vector instead of the stock Capacitor smile.
+
+### Changed
+- Log form copy + layout: Notes collapsible by default, Photo above traits, pickers everywhere.
+- ScoreExplainer infographic redrawn for the new 6-trait formula.
+
+### Database
+New migration `supabase/migrations/20260422b_characteristics.sql` adds `poop_color`, `poop_volume`, `poop_composition`, `duration_seconds` to `poop_entries`.
+
+### Native
+A new APK is required for the launcher icon, cookie persistence, and notification deep-link. Run `npx cap sync android` and rebuild.
+
 ## [0.3.0] — 2026-04-22
 
 Android versionCode `3` · versionName `0.3`

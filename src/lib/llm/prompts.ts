@@ -1,17 +1,27 @@
 import type { EntryContext } from "./types";
 
-export const PASS1_PROMPT = `You are a strict image classifier. Decide whether the supplied image is a real human stool sample suitable for visual gut-health analysis.
+export const PASS1_PROMPT = `You are a strict image classifier. Decide whether the supplied image is a real human stool sample (poop) suitable for visual gut-health analysis.
 
-Reject if:
-- It is not a stool sample (food, drawings, animals, memes, random objects, people, screenshots, text).
-- Image is severely blurry, too dark, too bright, or heavily obstructed.
-- Stool is not clearly visible (e.g. fully covered by toilet paper, water, or wipes).
+Be strict. Only set is_stool=true if you can clearly see actual human stool in the image. Set is_stool=false for all of the following (this list is not exhaustive):
+- Food of any kind (chocolate, cookies, sauces, desserts, meat, etc.)
+- Drawings, cartoons, emojis, memes, screenshots, text, logos
+- Animals, people, landscapes, household objects, toys
+- Blank or near-blank images (solid colors, toilets with no stool visible)
+- Mud, dirt, paint, or anything brown that is not stool
+- Images where the stool is fully covered by toilet paper, wipes, or murky water
 
-Respond ONLY with JSON matching this exact schema:
+Confidence should reflect your actual certainty. If you are not highly confident this is real human stool, set is_stool=false.
+
+rejection_reason rules:
+- If is_stool=false: use EXACTLY this sentence: "The uploaded picture is not of a poop. Try a different image."
+- If is_blurry=true (and is_stool might be true but the image is unusable): "Image is too blurry to analyse. Try a clearer photo in better light."
+- Otherwise null.
+
+Respond ONLY with JSON matching this exact schema (no prose, no markdown):
 {
   "is_stool": boolean,
   "confidence": number,            // 0 to 1
-  "rejection_reason": string|null, // short, user-friendly sentence if not a stool or unusable; null when acceptable
+  "rejection_reason": string|null,
   "is_blurry": boolean
 }`;
 

@@ -5,48 +5,66 @@ import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import { ChevronLeft, AlertCircle, ChevronDown } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { ImageUpload } from "@/components/ImageUpload";
 import { AnalysisLoader } from "@/components/AnalysisLoader";
+import { PoopPicker, type PickerOption } from "@/components/PoopPicker";
+import { Stopwatch } from "@/components/Stopwatch";
 import { createClient } from "@/lib/supabase/client";
 import { sha256Hex } from "@/lib/hash";
+import { playFlush } from "@/lib/sound";
+import {
+  computeHeuristicScore,
+  type PoopColor,
+  type PoopVolume,
+  type PoopComposition,
+} from "@/lib/scoring";
 
-type Urgency = "Low" | "Medium" | "High";
-type Odour = "Mild" | "Strong";
+const COLOR_OPTIONS: PickerOption<PoopColor>[] = [
+  { value: "brown", label: "Brown", visual: <span className="w-7 h-7 rounded-full" style={{ background: "#8b4513" }} /> },
+  { value: "dark_brown", label: "Dark brown", visual: <span className="w-7 h-7 rounded-full" style={{ background: "#4a2310" }} /> },
+  { value: "yellow", label: "Yellow", visual: <span className="w-7 h-7 rounded-full" style={{ background: "#d4a017" }} /> },
+  { value: "green", label: "Green", visual: <span className="w-7 h-7 rounded-full" style={{ background: "#4a7a3a" }} /> },
+  { value: "red", label: "Red", visual: <span className="w-7 h-7 rounded-full" style={{ background: "#9a2a2a" }} /> },
+  { value: "black", label: "Black", visual: <span className="w-7 h-7 rounded-full" style={{ background: "#1a1a1a" }} /> },
+  { value: "pale", label: "Pale", visual: <span className="w-7 h-7 rounded-full border border-stone-300" style={{ background: "#e8d6b0" }} /> },
+];
 
-const URGENCY_VALUES: Record<Urgency, number> = { Low: 1, Medium: 3, High: 5 };
-const ODOUR_VALUES: Record<Odour, number> = { Mild: 1, Strong: 5 };
+const VOLUME_OPTIONS: PickerOption<PoopVolume>[] = [
+  { value: "small", label: "Small", visual: "🥜" },
+  { value: "childlike", label: "Child-like", visual: "👶" },
+  { value: "normal", label: "Normal", visual: "👍" },
+  { value: "large", label: "Large", visual: "💪" },
+];
 
-function PillGroup<T extends string>({
-  options,
-  value,
-  onChange,
-}: {
-  options: T[];
-  value: T | null;
-  onChange: (v: T) => void;
-}) {
-  return (
-    <div className="flex gap-2">
-      {options.map((opt) => (
-        <button
-          key={opt}
-          type="button"
-          onClick={() => onChange(opt)}
-          className={`flex-1 h-11 rounded-xl text-sm font-medium transition-all active:scale-95 ${
-            value === opt
-              ? "bg-amber-600 text-white shadow-md shadow-amber-100"
-              : "bg-white border border-stone-200 text-stone-600 hover:border-amber-300"
-          }`}
-        >
-          {opt}
-        </button>
-      ))}
-    </div>
-  );
-}
+const COMPOSITION_OPTIONS: PickerOption<PoopComposition>[] = [
+  { value: "rock", label: "Rocks", visual: <Image src="/poop-icons/rock.svg" alt="" width={32} height={32} /> },
+  { value: "pellets", label: "Pellets", visual: <Image src="/poop-icons/pellets.svg" alt="" width={32} height={32} /> },
+  { value: "smooth", label: "Smooth", visual: <Image src="/poop-icons/smooth.svg" alt="" width={32} height={32} /> },
+  { value: "mushy", label: "Mushy", visual: <Image src="/poop-icons/mushy.svg" alt="" width={32} height={32} /> },
+];
+
+const ODOUR_OPTIONS: PickerOption<"none" | "mild" | "strong">[] = [
+  { value: "none", label: "None", visual: "😊" },
+  { value: "mild", label: "Mild", visual: "🙂" },
+  { value: "strong", label: "Strong", visual: "🤢" },
+];
+const ODOUR_VALUES = { none: 0, mild: 1, strong: 5 } as const;
+
+const URGENCY_OPTIONS: PickerOption<"low" | "medium" | "high">[] = [
+  { value: "low", label: "Low", visual: "😌" },
+  { value: "medium", label: "Medium", visual: "🙂" },
+  { value: "high", label: "High", visual: "😰" },
+];
+const URGENCY_VALUES = { low: 1, medium: 3, high: 5 } as const;
+
+const STRAIN_OPTIONS: PickerOption<"no" | "yes">[] = [
+  { value: "no", label: "No", visual: "😌" },
+  { value: "yes", label: "Yes", visual: "😣" },
+];
 
 type Stage = "idle" | "saving" | "analysing" | "rejected";
 
@@ -54,9 +72,14 @@ export default function LogPage() {
   const router = useRouter();
 
   const [time, setTime] = useState(format(new Date(), "HH:mm"));
-  const [urgency, setUrgency] = useState<Urgency | null>(null);
-  const [straining, setStraining] = useState<boolean | null>(null);
-  const [odour, setOdour] = useState<Odour | null>(null);
+  const [duration, setDuration] = useState<number | null>(null);
+  const [color, setColor] = useState<PoopColor | null>(null);
+  const [volume, setVolume] = useState<PoopVolume | null>(null);
+  const [composition, setComposition] = useState<PoopComposition | null>(null);
+  const [urgency, setUrgency] = useState<"low" | "medium" | "high" | null>(null);
+  const [straining, setStraining] = useState<"no" | "yes" | null>(null);
+  const [odour, setOdour] = useState<"none" | "mild" | "strong" | null>(null);
+
   const [notes, setNotes] = useState("");
   const [notesOpen, setNotesOpen] = useState(false);
   const [image, setImage] = useState<File | null>(null);
@@ -66,6 +89,20 @@ export default function LogPage() {
   const [pendingEntryId, setPendingEntryId] = useState<string | null>(null);
 
   const isBusy = stage === "saving" || stage === "analysing";
+
+  function computeScore(): number | null {
+    const u = urgency ? URGENCY_VALUES[urgency] : null;
+    const s = straining === null ? null : straining === "yes" ? 5 : 1;
+    const o = odour ? ODOUR_VALUES[odour] : null;
+    return computeHeuristicScore({
+      color,
+      volume,
+      composition,
+      urgency: u,
+      straining: s,
+      odour: o,
+    }).total;
+  }
 
   async function runAnalysis(entryId: string) {
     setStage("analysing");
@@ -84,28 +121,24 @@ export default function LogPage() {
         router.push(`/insight/${entryId}`);
         return;
       }
-
       if (res.status === 409) {
         setError(body.error || "This image was already analysed.");
         setStage("idle");
         router.push(`/insight/${entryId}`);
         return;
       }
-
       if (!res.ok) {
         setError(body.error || "Analysis failed. Entry saved.");
         setStage("idle");
         router.push(`/insight/${entryId}`);
         return;
       }
-
       if (body.ok === false && body.stage === "pass1") {
-        setRejectionReason(body.rejection_reason || "Image rejected.");
+        setRejectionReason(body.rejection_reason || "The uploaded picture is not of a poop. Try a different image.");
         setPendingEntryId(entryId);
         setStage("rejected");
         return;
       }
-
       router.push(`/insight/${entryId}`);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Analysis failed.");
@@ -155,6 +188,7 @@ export default function LogPage() {
 
     const today = format(new Date(), "yyyy-MM-dd");
     const loggedAt = new Date(`${today}T${time}`).toISOString();
+    const computedScore = computeScore();
 
     const { data, error: err } = await supabase
       .from("poop_entries")
@@ -162,11 +196,15 @@ export default function LogPage() {
         user_id: user.id,
         logged_at: loggedAt,
         urgency: urgency ? URGENCY_VALUES[urgency] : null,
-        straining: straining === null ? null : straining ? 5 : 1,
+        straining: straining === null ? null : straining === "yes" ? 5 : 1,
         odour: odour ? ODOUR_VALUES[odour] : null,
         notes: notes.trim() || null,
         image_hash: imageHash,
-        score: null,
+        score: computedScore,
+        poop_color: color,
+        poop_volume: volume,
+        poop_composition: composition,
+        duration_seconds: duration,
       })
       .select("id")
       .single();
@@ -176,6 +214,8 @@ export default function LogPage() {
       setStage("idle");
       return;
     }
+
+    playFlush();
 
     if (image) {
       const path = `${user.id}/${data.id}.jpg`;
@@ -255,7 +295,6 @@ export default function LogPage() {
     <main className="flex flex-col min-h-screen bg-stone-50">
       {stage === "analysing" && <AnalysisLoader />}
 
-      {/* Header */}
       <header className="flex items-center gap-3 px-5 pt-12 pb-5">
         <Link href="/home">
           <button className="w-9 h-9 rounded-full bg-stone-100 flex items-center justify-center hover:bg-stone-200 active:scale-95 transition-transform">
@@ -271,23 +310,70 @@ export default function LogPage() {
       </header>
 
       <div className="flex-1 px-5 pb-32 space-y-6">
-        {/* Time */}
+        {/* Time + Duration */}
+        <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-2">
+            <Label className="text-stone-700 font-medium">Time</Label>
+            <input
+              type="time"
+              value={time}
+              onChange={(e) => setTime(e.target.value)}
+              className="w-full h-12 rounded-xl border border-stone-200 bg-white px-4 text-stone-800 text-base focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label className="text-stone-700 font-medium">
+              Duration <span className="text-stone-400 font-normal">(optional)</span>
+            </Label>
+            <Stopwatch value={duration} onChange={setDuration} />
+          </div>
+        </div>
+
+        {/* Photo */}
         <div className="space-y-2">
-          <Label className="text-stone-700 font-medium">Time</Label>
-          <input
-            type="time"
-            value={time}
-            onChange={(e) => setTime(e.target.value)}
-            className="w-full h-12 rounded-xl border border-stone-200 bg-white px-4 text-stone-800 text-base focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+          <Label className="text-stone-700 font-medium">
+            Photo <span className="text-stone-400 font-normal">(optional — auto-fills traits)</span>
+          </Label>
+          <ImageUpload value={image} onChange={setImage} />
+        </div>
+
+        {/* Colour */}
+        <div className="space-y-2">
+          <Label className="text-stone-700 font-medium">
+            Colour <span className="text-stone-400 font-normal">(optional)</span>
+          </Label>
+          <PoopPicker
+            options={COLOR_OPTIONS}
+            value={color}
+            onChange={setColor}
+            columns={4}
           />
         </div>
 
-        {/* Photo — moved above Notes */}
+        {/* Volume */}
         <div className="space-y-2">
           <Label className="text-stone-700 font-medium">
-            Photo <span className="text-stone-400 font-normal">(optional)</span>
+            Volume <span className="text-stone-400 font-normal">(optional)</span>
           </Label>
-          <ImageUpload value={image} onChange={setImage} />
+          <PoopPicker
+            options={VOLUME_OPTIONS}
+            value={volume}
+            onChange={setVolume}
+            columns={4}
+          />
+        </div>
+
+        {/* Composition */}
+        <div className="space-y-2">
+          <Label className="text-stone-700 font-medium">
+            Composition <span className="text-stone-400 font-normal">(optional)</span>
+          </Label>
+          <PoopPicker
+            options={COMPOSITION_OPTIONS}
+            value={composition}
+            onChange={setComposition}
+            columns={4}
+          />
         </div>
 
         {/* Urgency */}
@@ -295,10 +381,11 @@ export default function LogPage() {
           <Label className="text-stone-700 font-medium">
             Urgency <span className="text-stone-400 font-normal">(optional)</span>
           </Label>
-          <PillGroup
-            options={["Low", "Medium", "High"] as Urgency[]}
+          <PoopPicker
+            options={URGENCY_OPTIONS}
             value={urgency}
             onChange={setUrgency}
+            columns={3}
           />
         </div>
 
@@ -307,22 +394,12 @@ export default function LogPage() {
           <Label className="text-stone-700 font-medium">
             Straining <span className="text-stone-400 font-normal">(optional)</span>
           </Label>
-          <div className="flex gap-2">
-            {([false, true] as const).map((opt) => (
-              <button
-                key={String(opt)}
-                type="button"
-                onClick={() => setStraining(opt)}
-                className={`flex-1 h-11 rounded-xl text-sm font-medium transition-all active:scale-95 ${
-                  straining === opt
-                    ? "bg-amber-600 text-white shadow-md shadow-amber-100"
-                    : "bg-white border border-stone-200 text-stone-600 hover:border-amber-300"
-                }`}
-              >
-                {opt ? "Yes" : "No"}
-              </button>
-            ))}
-          </div>
+          <PoopPicker
+            options={STRAIN_OPTIONS}
+            value={straining}
+            onChange={setStraining}
+            columns={4}
+          />
         </div>
 
         {/* Odour */}
@@ -330,14 +407,15 @@ export default function LogPage() {
           <Label className="text-stone-700 font-medium">
             Odour <span className="text-stone-400 font-normal">(optional)</span>
           </Label>
-          <PillGroup
-            options={["Mild", "Strong"] as Odour[]}
+          <PoopPicker
+            options={ODOUR_OPTIONS}
             value={odour}
             onChange={setOdour}
+            columns={3}
           />
         </div>
 
-        {/* Notes — collapsible */}
+        {/* Notes collapsible */}
         <div className="space-y-2">
           {!notesOpen ? (
             <button
@@ -365,7 +443,6 @@ export default function LogPage() {
           )}
         </div>
 
-        {/* Pass 1 rejection */}
         {stage === "rejected" && (
           <div className="bg-red-50 border border-red-200 rounded-2xl p-4 space-y-3">
             <div className="flex items-start gap-2">
@@ -410,7 +487,6 @@ export default function LogPage() {
         )}
       </div>
 
-      {/* Save button */}
       {stage !== "rejected" && (
         <div className="fixed bottom-0 left-0 right-0 p-5 bg-gradient-to-t from-stone-50 via-stone-50 to-transparent">
           <Button

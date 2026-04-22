@@ -78,6 +78,10 @@ export interface Database {
           image_path: string | null;
           image_hash: string | null;
           score: number | null;
+          poop_color: string | null;
+          poop_volume: string | null;
+          poop_composition: string | null;
+          duration_seconds: number | null;
           created_at: string;
         };
         Insert: {
@@ -91,6 +95,10 @@ export interface Database {
           image_path?: string | null;
           image_hash?: string | null;
           score?: number | null;
+          poop_color?: string | null;
+          poop_volume?: string | null;
+          poop_composition?: string | null;
+          duration_seconds?: number | null;
           created_at?: string;
         };
         Update: {
@@ -104,6 +112,10 @@ export interface Database {
           image_path?: string | null;
           image_hash?: string | null;
           score?: number | null;
+          poop_color?: string | null;
+          poop_volume?: string | null;
+          poop_composition?: string | null;
+          duration_seconds?: number | null;
           created_at?: string;
         };
         Relationships: [];

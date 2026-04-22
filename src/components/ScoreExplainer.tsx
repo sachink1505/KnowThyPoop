@@ -5,28 +5,40 @@ import { HelpCircle, X } from "lucide-react";
 
 const SEGMENTS = [
   {
-    label: "Form",
-    max: 40,
+    label: "Composition",
+    max: 30,
     color: "bg-amber-500",
-    desc: "Bristol stool scale — well-formed types 3–4 score highest.",
+    desc: "Bristol stool scale — smooth, sausage-shaped (types 3–4) scores highest.",
   },
   {
     label: "Colour",
     max: 25,
     color: "bg-stone-600",
-    desc: "Healthy browns score highest; pale, black, or red lower.",
+    desc: "Medium brown is ideal. Black, red, pale or yellow score lower.",
   },
   {
-    label: "Experience",
-    max: 20,
-    color: "bg-emerald-500",
-    desc: "No straining and normal urgency score highest.",
-  },
-  {
-    label: "Frequency",
+    label: "Straining",
     max: 15,
+    color: "bg-rose-500",
+    desc: "No strain scores highest.",
+  },
+  {
+    label: "Urgency",
+    max: 10,
     color: "bg-sky-500",
-    desc: "5–14 logs in the last 7 days score highest.",
+    desc: "Low to medium urgency is healthiest.",
+  },
+  {
+    label: "Volume",
+    max: 10,
+    color: "bg-emerald-500",
+    desc: "Normal, satisfying volume scores highest.",
+  },
+  {
+    label: "Odour",
+    max: 10,
+    color: "bg-violet-500",
+    desc: "Mild or no odour scores highest.",
   },
 ];
 
@@ -59,7 +71,7 @@ export function ScoreExplainer() {
                     How your score works
                   </h3>
                   <p className="text-xs text-stone-400 mt-0.5">
-                    A 0–100 snapshot across four areas.
+                    A 0–100 snapshot across six traits.
                   </p>
                 </div>
                 <button
@@ -116,8 +128,8 @@ export function ScoreExplainer() {
               </ul>
 
               <p className="text-xs text-stone-400 mt-5 leading-relaxed">
-                Total = Form + Colour + Experience + Frequency, capped at 100.
-                Entries without a photo don't receive a score.
+                Missing traits are skipped — your score normalizes over what you
+                logged. Add a photo to auto-fill colour, volume, and composition.
               </p>
             </div>
           </div>

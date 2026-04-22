@@ -2,7 +2,7 @@ import { z } from "zod";
 import { NextResponse } from "next/server";
 import { withAuth, apiError } from "@/lib/api";
 import { getProvider } from "@/lib/llm";
-import { calculateScore } from "@/lib/scoring";
+import { characteristicsFromAnalysis, computeHeuristicScore } from "@/lib/scoring";
 import "@/lib/env";
 
 const DAILY_LIMIT = 10;
@@ -96,16 +96,15 @@ export const POST = withAuth<Record<string, never>, z.infer<typeof bodySchema>>(
       );
     }
 
-    if (!pass1.is_stool || pass1.confidence < 0.6 || pass1.is_blurry) {
+    if (!pass1.is_stool || pass1.confidence < 0.7 || pass1.is_blurry) {
+      const reason = pass1.is_blurry
+        ? "Image is too blurry to analyse. Try a clearer photo in better light."
+        : "The uploaded picture is not of a poop. Try a different image.";
       return NextResponse.json(
         {
           ok: false,
           stage: "pass1",
-          rejection_reason:
-            pass1.rejection_reason ||
-            (pass1.is_blurry
-              ? "Image is too blurry to analyse."
-              : "That doesn't look like a stool sample."),
+          rejection_reason: reason,
           pass1,
         },
         { status: 200 }
@@ -127,19 +126,21 @@ export const POST = withAuth<Record<string, never>, z.infer<typeof bodySchema>>(
       );
     }
 
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-    const { count: weeklyCount } = await supabase
-      .from("poop_entries")
-      .select("id", { count: "exact", head: true })
-      .eq("user_id", user.id)
-      .gte("logged_at", sevenDaysAgo.toISOString());
+    // Derive structured characteristics from the LLM analysis and use the
+    // same unified formula used at save-time (no photo case).
+    const derived = characteristicsFromAnalysis(pass2.result, pass2.result.size);
+    // If the user has already picked values in the log form, prefer theirs.
+    const finalColor = entry.poop_color ?? derived.color;
+    const finalVolume = entry.poop_volume ?? derived.volume;
+    const finalComposition = entry.poop_composition ?? derived.composition;
 
-    const breakdown = calculateScore({
-      analysis: pass2.result,
+    const breakdown = computeHeuristicScore({
+      color: finalColor as never,
+      volume: finalVolume as never,
+      composition: finalComposition as never,
       urgency: entry.urgency,
       straining: entry.straining,
-      weeklyEntryCount: weeklyCount ?? 1,
+      odour: entry.odour,
     });
 
     const bristolLabel = `Type ${pass2.result.stool_form}`;
@@ -163,7 +164,12 @@ export const POST = withAuth<Record<string, never>, z.infer<typeof bodySchema>>(
 
     await supabase
       .from("poop_entries")
-      .update({ score: breakdown.total })
+      .update({
+        score: breakdown.total,
+        poop_color: finalColor,
+        poop_volume: finalVolume,
+        poop_composition: finalComposition,
+      })
       .eq("id", entry.id);
 
     return NextResponse.json({

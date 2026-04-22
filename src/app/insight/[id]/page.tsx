@@ -91,7 +91,7 @@ export default async function InsightPage({ params }: Props) {
   const insightsList = parseList(analysis?.insights ?? null);
   const correctionsList = parseList(analysis?.corrections ?? null);
 
-  const score = entry.score ?? 0;
+  const score = entry.score;
   const urgency = urgencyLabel(entry.urgency);
   const straining = entry.straining && entry.straining > 3 ? "Yes" : "No";
   const odour = odourLabel(entry.odour);
@@ -116,7 +116,7 @@ export default async function InsightPage({ params }: Props) {
       <div className="px-5 space-y-4">
         {/* Score card */}
         <div className="bg-white rounded-2xl p-5 shadow-sm border border-stone-100 flex items-center gap-5">
-          <CircularProgress score={score} size={90} />
+          <CircularProgress score={score ?? 0} size={90} />
           <div>
             <div className="flex items-center gap-1.5">
               <p className="text-xs text-stone-400 uppercase tracking-wide font-medium">
@@ -124,11 +124,24 @@ export default async function InsightPage({ params }: Props) {
               </p>
               <ScoreExplainer />
             </div>
-            <p className="text-3xl font-bold text-stone-800 mt-0.5">
-              {score}
-              <span className="text-base font-normal text-stone-400"> / 100</span>
-            </p>
-            <p className="text-xs text-stone-400 mt-1">Based on your logged data</p>
+            {score == null ? (
+              <>
+                <p className="text-3xl font-bold text-stone-400 mt-0.5">—</p>
+                <p className="text-xs text-stone-400 mt-1">
+                  Log characteristics to see a score
+                </p>
+              </>
+            ) : (
+              <>
+                <p className="text-3xl font-bold text-stone-800 mt-0.5">
+                  {score}
+                  <span className="text-base font-normal text-stone-400"> / 100</span>
+                </p>
+                <p className="text-xs text-stone-400 mt-1">
+                  Based on your logged data
+                </p>
+              </>
+            )}
           </div>
         </div>
 

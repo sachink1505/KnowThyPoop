@@ -7,11 +7,33 @@ import { isNative } from "@/lib/native";
 const MAX_BYTES = 5 * 1024 * 1024;
 const ACCEPTED = ["image/jpeg", "image/png"];
 
+class PermissionDeniedError extends Error {
+  constructor(public kind: "camera" | "photos") {
+    super(`${kind} permission denied`);
+    this.name = "PermissionDeniedError";
+  }
+}
+
 async function captureNative(source: "camera" | "gallery"): Promise<File | null> {
   // Dynamic import so the browser bundle never pulls in native-only code.
   const { Camera: CapCamera, CameraResultType, CameraSource } = await import(
     "@capacitor/camera"
   );
+
+  // Explicit permission check + request before invoking getPhoto.
+  const kind: "camera" | "photos" = source === "camera" ? "camera" : "photos";
+  const current = await CapCamera.checkPermissions();
+  const currentStatus = kind === "camera" ? current.camera : current.photos;
+  if (currentStatus !== "granted") {
+    const requested = await CapCamera.requestPermissions({
+      permissions: [kind],
+    });
+    const newStatus = kind === "camera" ? requested.camera : requested.photos;
+    if (newStatus !== "granted") {
+      throw new PermissionDeniedError(kind);
+    }
+  }
+
   const photo = await CapCamera.getPhoto({
     quality: 85,
     allowEditing: false,
@@ -60,10 +82,22 @@ export function ImageUpload({ value, onChange }: Props) {
       const file = await captureNative(source);
       handleFile(file ?? undefined);
     } catch (err) {
-      // User cancelling is a thrown error on Capacitor — swallow it silently.
       const msg = err instanceof Error ? err.message : "";
+      // User cancelled picker — silent.
       if (/cancel/i.test(msg)) return;
-      setError("Couldn't open the camera. Please try the gallery instead.");
+      if (err instanceof Error && err.name === "PermissionDeniedError") {
+        setError(
+          source === "camera"
+            ? "Camera access denied. Enable it in Settings."
+            : "Photos access denied. Enable it in Settings."
+        );
+        return;
+      }
+      setError(
+        source === "camera"
+          ? "Couldn't open the camera. Try the gallery instead."
+          : "Couldn't open the gallery. Try again."
+      );
     }
   }
 
