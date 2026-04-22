@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <!-- Placeholder icon for Logio. On-brand amber blob with a small smile.
+       Replace with final brand art before store submission. -->
+  <defs>
+    <radialGradient id="g" cx="50%" cy="40%" r="60%">
+      <stop offset="0%" stop-color="#fbbf24"/>
+      <stop offset="100%" stop-color="#b45309"/>
+    </radialGradient>
+  </defs>
+  <!-- blob body -->
+  <path fill="url(#g)" d="M512 160c140 0 230 80 260 190 26 94-14 170-30 230-22 84-90 150-230 150s-208-66-230-150c-16-60-56-136-30-230 30-110 120-190 260-190z"/>
+  <!-- eyes -->
+  <circle cx="420" cy="470" r="28" fill="#1c1917"/>
+  <circle cx="604" cy="470" r="28" fill="#1c1917"/>
+  <!-- smile -->
+  <path d="M420 600 q92 80 184 0" stroke="#1c1917" stroke-width="18" stroke-linecap="round" fill="none"/>
+</svg>

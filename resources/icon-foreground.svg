@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <!-- Foreground layer for adaptive icons (Android). Transparent bg + logo
+       only; Android OEMs mask this with various shapes, so keep the mark
+       well inside the safe zone (~66% of canvas). -->
+  <defs>
+    <radialGradient id="g2" cx="50%" cy="40%" r="60%">
+      <stop offset="0%" stop-color="#fbbf24"/>
+      <stop offset="100%" stop-color="#b45309"/>
+    </radialGradient>
+  </defs>
+  <g transform="translate(170, 170) scale(0.67)">
+    <path fill="url(#g2)" d="M512 160c140 0 230 80 260 190 26 94-14 170-30 230-22 84-90 150-230 150s-208-66-230-150c-16-60-56-136-30-230 30-110 120-190 260-190z"/>
+    <circle cx="420" cy="470" r="28" fill="#1c1917"/>
+    <circle cx="604" cy="470" r="28" fill="#1c1917"/>
+    <path d="M420 600 q92 80 184 0" stroke="#1c1917" stroke-width="18" stroke-linecap="round" fill="none"/>
+  </g>
+</svg>

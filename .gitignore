@@ -34,3 +34,15 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Capacitor — native build artefacts and secrets
+/ios/App/Pods/
+/ios/App/App.xcworkspace/xcuserdata/
+/ios/DerivedData/
+/android/.gradle/
+/android/build/
+/android/app/build/
+/android/keystore.properties
+/android/app/release/
+*.jks
+*.keystore
