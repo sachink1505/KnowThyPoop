@@ -89,9 +89,12 @@ export function ImageUpload({ value, onChange }: Props) {
       const file = await captureNative(source);
       handleFile(file ?? undefined);
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "";
+      console.error("[ImageUpload] capture failed:", err);
+      const raw =
+        (err as { errorMessage?: string; message?: string })?.errorMessage ??
+        (err as Error)?.message ?? "";
       // User cancelled picker — silent.
-      if (/cancel/i.test(msg)) return;
+      if (/cancel/i.test(raw)) return;
       if (err instanceof Error && err.name === "PermissionDeniedError") {
         setError(
           source === "camera"
@@ -100,8 +103,11 @@ export function ImageUpload({ value, onChange }: Props) {
         );
         return;
       }
+      // Surface the underlying plugin error so future regressions stay visible.
       setError(
-        source === "camera"
+        raw
+          ? `Couldn't open ${source}: ${raw}`
+          : source === "camera"
           ? "Couldn't open the camera. Try the gallery instead."
           : "Couldn't open the gallery. Try again."
       );

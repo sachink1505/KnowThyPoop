@@ -2,6 +2,17 @@
 
 All notable changes to Know Thy Poop.
 
+## [0.6.0] — 2026-04-23
+
+Android versionCode `6` · versionName `0.6`
+
+### Fixed
+- **Camera and gallery always threw "Couldn't open…"** — root cause was missing Android permissions in [android/app/src/main/AndroidManifest.xml](android/app/src/main/AndroidManifest.xml). The `@capacitor/camera` plugin does **not** auto-declare them, and on targetSdk 36 the OS silently refuses to prompt for undeclared permissions. Added: `CAMERA`, `READ_MEDIA_IMAGES` (API 33+), `READ_EXTERNAL_STORAGE` (≤ API 32), `WRITE_EXTERNAL_STORAGE` (≤ API 29), plus `uses-feature camera required=false`.
+- **Silent error swallowing** in `ImageUpload.tsx` — the real plugin error was hidden behind a generic fallback. Now `console.error`s the full error and surfaces the real message inline so regressions stay visible.
+
+### Native
+Manifest-level change — the live webapp can't fix it alone. New APK required. Uninstall v0.5 first, then install v0.6 (fresh install re-triggers the permission flow cleanly).
+
 ## [0.5.0] — 2026-04-23
 
 Android versionCode `5` · versionName `0.5`

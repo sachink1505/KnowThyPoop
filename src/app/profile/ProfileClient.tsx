@@ -24,7 +24,7 @@ import { AvatarPicker, AVATAR_SEEDS, avatarUrl } from "@/components/AvatarPicker
 import { scheduleDailyReminder } from "@/lib/notifications";
 import type { Profile, UserIssue } from "@/types/database";
 
-const APP_VERSION = "0.5.0";
+const APP_VERSION = "0.6.0";
 
 const ISSUE_OPTIONS = [
   { id: "multiple_times", label: "Poop multiple times a day" },
