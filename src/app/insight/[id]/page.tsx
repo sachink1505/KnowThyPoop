@@ -1,13 +1,13 @@
 import { createClient } from "@/lib/supabase/server";
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
-import { format } from "date-fns";
 import { ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CircularProgress } from "@/components/CircularProgress";
 import { InsightFeedback } from "@/components/InsightFeedback";
 import { EntryImageViewer } from "@/components/EntryImageViewer";
 import { ScoreExplainer } from "@/components/ScoreExplainer";
+import { LocalTime } from "@/components/LocalTime";
 
 function urgencyLabel(v: number | null) {
   if (!v) return "—";
@@ -17,9 +17,27 @@ function urgencyLabel(v: number | null) {
 }
 
 function odourLabel(v: number | null) {
-  if (!v) return "—";
+  if (v == null) return "—";
+  if (v <= 0) return "None";
   return v <= 2 ? "Mild" : "Strong";
 }
+
+function formatDuration(s: number | null) {
+  if (s == null || s <= 0) return "—";
+  const m = Math.floor(s / 60);
+  const ss = Math.floor(s % 60);
+  return `${m}:${ss.toString().padStart(2, "0")}`;
+}
+
+const COLOR_HEX: Record<string, string> = {
+  brown: "#8b4513",
+  dark_brown: "#4a2310",
+  yellow: "#d4a017",
+  green: "#4a7a3a",
+  red: "#9a2a2a",
+  black: "#1a1a1a",
+  pale: "#e8d6b0",
+};
 
 function DataItem({ label, value }: { label: string; value: string }) {
   return (
@@ -108,7 +126,7 @@ export default async function InsightPage({ params }: Props) {
         <div>
           <h1 className="text-lg font-bold text-stone-800">Your insight</h1>
           <p className="text-xs text-stone-400">
-            {format(new Date(entry.logged_at), "EEEE, d MMMM · h:mm a")}
+            <LocalTime iso={entry.logged_at} pattern="EEEE, d MMMM · h:mm a" />
           </p>
         </div>
       </header>
@@ -154,10 +172,33 @@ export default async function InsightPage({ params }: Props) {
             <DataItem label="Urgency" value={urgency} />
             <DataItem label="Straining" value={straining} />
             <DataItem label="Odour" value={odour} />
-            <DataItem
-              label="Time"
-              value={format(new Date(entry.logged_at), "h:mm a")}
-            />
+            <div className="bg-stone-50 rounded-xl p-3">
+              <p className="text-xs text-stone-400 mb-0.5">Time</p>
+              <p className="text-sm font-semibold text-stone-700">
+                <LocalTime iso={entry.logged_at} pattern="h:mm a" />
+              </p>
+            </div>
+            {entry.poop_color && (
+              <div className="bg-stone-50 rounded-xl p-3">
+                <p className="text-xs text-stone-400 mb-0.5">Colour</p>
+                <p className="text-sm font-semibold text-stone-700 flex items-center gap-2 capitalize">
+                  <span
+                    className="w-3.5 h-3.5 rounded-full border border-stone-200 inline-block"
+                    style={{ background: COLOR_HEX[entry.poop_color] ?? "#8b4513" }}
+                  />
+                  {entry.poop_color.replace("_", " ")}
+                </p>
+              </div>
+            )}
+            {entry.poop_volume && (
+              <DataItem label="Volume" value={entry.poop_volume.replace("_", " ")} />
+            )}
+            {entry.poop_composition && (
+              <DataItem label="Composition" value={entry.poop_composition} />
+            )}
+            {entry.duration_seconds != null && entry.duration_seconds > 0 && (
+              <DataItem label="Duration" value={formatDuration(entry.duration_seconds)} />
+            )}
           </div>
           {entry.notes && (
             <div className="mt-3 pt-3 border-t border-stone-100">

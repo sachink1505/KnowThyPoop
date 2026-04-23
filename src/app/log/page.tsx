@@ -216,6 +216,9 @@ export default function LogPage() {
     }
 
     playFlush();
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("ktp.stopwatch");
+    }
 
     if (image) {
       const path = `${user.id}/${data.id}.jpg`;
@@ -323,7 +326,7 @@ export default function LogPage() {
           </div>
           <div className="space-y-2">
             <Label className="text-stone-700 font-medium">
-              Duration <span className="text-stone-400 font-normal">(optional)</span>
+              Duration
             </Label>
             <Stopwatch value={duration} onChange={setDuration} />
           </div>
@@ -332,7 +335,7 @@ export default function LogPage() {
         {/* Photo */}
         <div className="space-y-2">
           <Label className="text-stone-700 font-medium">
-            Photo <span className="text-stone-400 font-normal">(optional — auto-fills traits)</span>
+            Photo <span className="text-stone-400 font-normal">(auto-fills traits)</span>
           </Label>
           <ImageUpload value={image} onChange={setImage} />
         </div>
@@ -340,7 +343,7 @@ export default function LogPage() {
         {/* Colour */}
         <div className="space-y-2">
           <Label className="text-stone-700 font-medium">
-            Colour <span className="text-stone-400 font-normal">(optional)</span>
+            Colour
           </Label>
           <PoopPicker
             options={COLOR_OPTIONS}
@@ -353,7 +356,7 @@ export default function LogPage() {
         {/* Volume */}
         <div className="space-y-2">
           <Label className="text-stone-700 font-medium">
-            Volume <span className="text-stone-400 font-normal">(optional)</span>
+            Volume
           </Label>
           <PoopPicker
             options={VOLUME_OPTIONS}
@@ -366,7 +369,7 @@ export default function LogPage() {
         {/* Composition */}
         <div className="space-y-2">
           <Label className="text-stone-700 font-medium">
-            Composition <span className="text-stone-400 font-normal">(optional)</span>
+            Composition
           </Label>
           <PoopPicker
             options={COMPOSITION_OPTIONS}
@@ -379,7 +382,7 @@ export default function LogPage() {
         {/* Urgency */}
         <div className="space-y-2">
           <Label className="text-stone-700 font-medium">
-            Urgency <span className="text-stone-400 font-normal">(optional)</span>
+            Urgency
           </Label>
           <PoopPicker
             options={URGENCY_OPTIONS}
@@ -392,7 +395,7 @@ export default function LogPage() {
         {/* Straining */}
         <div className="space-y-2">
           <Label className="text-stone-700 font-medium">
-            Straining <span className="text-stone-400 font-normal">(optional)</span>
+            Straining
           </Label>
           <PoopPicker
             options={STRAIN_OPTIONS}
@@ -405,7 +408,7 @@ export default function LogPage() {
         {/* Odour */}
         <div className="space-y-2">
           <Label className="text-stone-700 font-medium">
-            Odour <span className="text-stone-400 font-normal">(optional)</span>
+            Odour
           </Label>
           <PoopPicker
             options={ODOUR_OPTIONS}
@@ -429,7 +432,7 @@ export default function LogPage() {
           ) : (
             <>
               <Label className="text-stone-700 font-medium">
-                Notes <span className="text-stone-400 font-normal">(optional)</span>
+                Notes
               </Label>
               <Textarea
                 placeholder="Anything to note?"

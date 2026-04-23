@@ -2,6 +2,31 @@
 
 All notable changes to Know Thy Poop.
 
+## [0.5.0] — 2026-04-23
+
+Android versionCode `5` · versionName `0.5`
+
+### Fixed
+- **Entry save failing on "No odour"** — the DB had a CHECK constraint `odour >= 1`; relaxed to `>= 0`. This also unblocked **image upload**, which was cascade-failing because the entry insert threw before the storage step.
+- **Score still showing 75 for old entries** — removed the last placeholders and back-filled every existing null-score entry using the new 6-trait heuristic.
+- **Camera / gallery upload errors on native** — permission flow now only requests `camera` for the camera source (Android gallery doesn't need the Camera plugin's `photos` permission; the system file picker handles it).
+- **Daily reminder toggle on signup** was visually stuck — missing horizontal offset on the knob. Fixed with explicit `left-0.5` and slightly bigger hit area.
+- **Stopwatch paused when app was minimized** — now computes elapsed from `Date.now()` and persists to `localStorage`, so it keeps ticking through backgrounding. Stopping it (or killing the app) clears the state.
+- **Time cards showed UTC instead of IST** — `EntryCard` is now a client component and `LocalTime` renders the insight-page timestamp on the device, so dates pick up the user's real timezone.
+- **Calendar on /insights looked congested** — cell size bumped from 1.75rem to 2.5rem, week rows now have `gap-0.5`, weekday headers bigger, calendar fills the width.
+- **Duration / Colour / Volume / Composition hidden in history** — all four now show as chips on `EntryCard` and in the "What you logged" grid on the insight page.
+
+### Added
+- **+1 min button** on the stopwatch to bump duration quickly.
+- **Themed route loader** (`PoopLoader`) — animated poop + amber ring — replaces the white skeleton flash on route transitions (home, log, profile, insights, stats).
+
+### Changed
+- Removed "(optional)" text from log-form labels (everything below Photo is optional by design).
+- ScoreExplainer text clarified.
+
+### Database
+New migration `20260423_odour_allow_zero.sql` relaxes the odour check. Back-fill of historical scores was applied via SQL (non-migration one-off).
+
 ## [0.4.0] — 2026-04-22
 
 Android versionCode `4` · versionName `0.4`

@@ -57,7 +57,7 @@ export default function InsightsPage() {
 
       <div className="px-5 space-y-5">
         {/* Calendar */}
-        <div className="bg-white rounded-2xl shadow-sm border border-stone-100 p-3 flex justify-center">
+        <div className="bg-white rounded-2xl shadow-sm border border-stone-100 p-2">
           <Calendar
             mode="single"
             selected={selectedDate}
@@ -65,7 +65,7 @@ export default function InsightsPage() {
             modifiers={{ hasEntry: entryDates }}
             modifiersClassNames={{
               hasEntry:
-                "after:absolute after:bottom-1 after:left-1/2 after:-translate-x-1/2 after:w-1 after:h-1 after:rounded-full after:bg-amber-500",
+                "after:absolute after:bottom-1 after:left-1/2 after:-translate-x-1/2 after:w-1.5 after:h-1.5 after:rounded-full after:bg-amber-500",
             }}
             disabled={{ after: new Date() }}
           />

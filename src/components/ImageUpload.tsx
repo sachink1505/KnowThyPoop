@@ -20,17 +20,24 @@ async function captureNative(source: "camera" | "gallery"): Promise<File | null>
     "@capacitor/camera"
   );
 
-  // Explicit permission check + request before invoking getPhoto.
-  const kind: "camera" | "photos" = source === "camera" ? "camera" : "photos";
-  const current = await CapCamera.checkPermissions();
-  const currentStatus = kind === "camera" ? current.camera : current.photos;
-  if (currentStatus !== "granted") {
-    const requested = await CapCamera.requestPermissions({
-      permissions: [kind],
-    });
-    const newStatus = kind === "camera" ? requested.camera : requested.photos;
-    if (newStatus !== "granted") {
-      throw new PermissionDeniedError(kind);
+  // For camera source, explicitly request the camera permission.
+  // For gallery on Android, the system file picker handles its own access —
+  // checking the `photos` permission here returns inconsistent states, so we
+  // let getPhoto handle it. For iOS photos permission, we still request it.
+  if (source === "camera") {
+    try {
+      const current = await CapCamera.checkPermissions();
+      if (current.camera !== "granted") {
+        const requested = await CapCamera.requestPermissions({
+          permissions: ["camera"],
+        });
+        if (requested.camera !== "granted") {
+          throw new PermissionDeniedError("camera");
+        }
+      }
+    } catch (e) {
+      if (e instanceof PermissionDeniedError) throw e;
+      // checkPermissions itself can throw on devices missing Play Services; fall through.
     }
   }
 
